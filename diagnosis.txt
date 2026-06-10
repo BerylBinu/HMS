@@ -1,0 +1,7 @@
+401 STD NO
+32758 TREATMENT no
+32758 tretment 0
+1 bad no
+32758 treatment 0
+1 std None
+404 Cancer chemo

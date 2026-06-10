@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "director.h"
+//#include "director.h"
 // #include "admin.h"
-// #include "doctor.h"
+#include "doctor.h"
 // #include "nurse.h"
 // #include "patient.h"
 
@@ -23,7 +23,7 @@ int main() {
 
         switch(choice) {
             case 1:
-                directorLogin();
+                //directorLogin();
                 break;
 
             case 2:
@@ -31,7 +31,7 @@ int main() {
                 break;
 
             case 3:
-                // doctor_login();
+                doctorLogin();
                 break;
 
             case 4:

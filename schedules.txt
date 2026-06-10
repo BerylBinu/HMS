@@ -1,0 +1,3 @@
+201 9 3AM-5AM
+201 9 4AM-10AM
+201 thursday 8am
