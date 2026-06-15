@@ -10,6 +10,26 @@ struct Admin {
 
 };
 
+static void prepareAppend(FILE *file) {
+    long size;
+    int lastChar;
+
+    fseek(file, 0, SEEK_END);
+    size = ftell(file);
+
+    if(size <= 0) {
+        return;
+    }
+
+    fseek(file, -1, SEEK_END);
+    lastChar = fgetc(file);
+    fseek(file, 0, SEEK_END);
+
+    if(lastChar != '\n') {
+        fprintf(file, "\n");
+    }
+}
+
 // FUNCTION PROTOTYPES
 void manageAdministratorMenu();
 void staffReportMenu();
@@ -23,7 +43,7 @@ void searchAdministrator();
 void viewAdministrators();
 
 void searchStaffReport();
-void viewStaffReport();
+void directorViewStaffReport();
 
 void searchSalesReport();
 void viewSalesReport();
@@ -73,7 +93,7 @@ void addAdministrator() {
 
     struct Admin admin;
 
-    file = fopen("admins.txt", "a");
+    file = fopen("admins.txt", "a+");
 
     if(file == NULL) {
 
@@ -95,6 +115,7 @@ void addAdministrator() {
     printf("Enter Administrator Password: ");
     scanf("%s", admin.password);
 
+    prepareAppend(file);
     fprintf(file,
             "%d %s %s\n",
             admin.id,
@@ -217,7 +238,7 @@ void staffReportMenu() {
                 break;
 
             case 2:
-                viewStaffReport();
+                directorViewStaffReport();
                 break;
 
             case 0:
@@ -309,7 +330,7 @@ void searchStaffReport() {
 }
 
 //view staff
-void viewStaffReport() {
+void directorViewStaffReport(){
 
     FILE *file;
 
