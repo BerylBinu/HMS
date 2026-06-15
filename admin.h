@@ -2,8 +2,11 @@
 #define ADMIN_H
 
 #define MAX 100
-#define ADMIN_USERNAME "admin"
-#define ADMIN_PASSWORD "admin123"
+typedef struct {
+    char id[20];
+    char name[50];
+    char password[20];
+} Admin;
 
 typedef struct {
     char id[20];
@@ -36,7 +39,7 @@ typedef struct {
 void clearInputBuffer();
 void adminLogin();
 void registerUser();
-void viewStaffReport();
+void adminViewStaffReport();
 void searchStaff();
 void viewComplaints();
 void searchComplaints();
