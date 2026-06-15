@@ -19,7 +19,7 @@ void viewAdministrators();
 
 // STAFF REPORT FUNCTIONS
 void searchStaffReport();
-void viewStaffReport();
+void directorViewStaffReport();
 
 // SALES REPORT FUNCTIONS
 void searchSalesReport();
