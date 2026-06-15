@@ -4,23 +4,65 @@
 #include "admin.h"
 
 void clearInputBuffer() {
-    while(getchar() != '\n');
+    int ch;
+
+    while((ch = getchar()) != '\n' && ch != EOF);
+}
+
+static void prepareAppend(FILE *file) {
+    long size;
+    int lastChar;
+
+    fseek(file, 0, SEEK_END);
+    size = ftell(file);
+
+    if(size <= 0) {
+        return;
+    }
+
+    fseek(file, -1, SEEK_END);
+    lastChar = fgetc(file);
+    fseek(file, 0, SEEK_END);
+
+    if(lastChar != '\n') {
+        fprintf(file, "\n");
+    }
 }
 
 
 void adminLogin() {
-    char username[20], password[20];
+    FILE *file;
+    Admin admin;
+    char id[20], password[20];
+    int found = 0;
 
     printf("===== ADMIN LOGIN =====\n");
-    printf("Username: ");
-    scanf("%s", username);
+    printf("Admin ID: ");
+    scanf("%19s", id);
     printf("Password: ");
-    scanf("%s", password);
+    scanf("%19s", password);
 
-    if(strcmp(username, ADMIN_USERNAME) == 0 &&
-       strcmp(password, ADMIN_PASSWORD) == 0) {
+    file = fopen("admins.txt", "r");
 
+    if(file == NULL) {
+        printf("\nNo administrator records found.\n");
+        return;
+    }
+
+    while(fscanf(file, "%19s %49s %19s",
+                 admin.id, admin.name, admin.password) == 3) {
+        if(strcmp(id, admin.id) == 0 &&
+           strcmp(password, admin.password) == 0) {
+            found = 1;
+            break;
+        }
+    }
+
+    fclose(file);
+
+    if(found) {
         printf("\nLogin Successful!\n");
+        printf("Welcome %s\n", admin.name);
         adminMenu();
     } else {
         printf("\nInvalid Login Credentials!\n");
@@ -37,24 +79,28 @@ void registerUser() {
     scanf("%d", &roleChoice);
 
     if(roleChoice == 1) {
-        FILE *file = fopen("doctors.txt", "a");
+        FILE *file = fopen("doctors.txt", "a+");
         Doctor d;
 
+        if(file == NULL) {
+            printf("File error.\n");
+            return;
+        }
+
         printf("Enter ID: ");
-        scanf("%s", d.id);
+        scanf("%19s", d.id);
 
         printf("Enter Name: ");
-        clearInputBuffer();
-        fgets(d.name, sizeof(d.name), stdin);
-        d.name[strcspn(d.name, "\n")] = '\0';
+        scanf("%49s", d.name);
 
         printf("Enter Specialty: ");
-        scanf("%s", d.specialty);
+        scanf("%49s", d.specialty);
 
         printf("Enter Password: ");
-        scanf("%s", d.password);
+        scanf("%19s", d.password);
 
-        fprintf(file, "%s|%s|%s|%s\n",
+        prepareAppend(file);
+        fprintf(file, "%s %s %s %s\n",
                 d.id, d.name, d.specialty, d.password);
 
         fclose(file);
@@ -62,24 +108,28 @@ void registerUser() {
     }
 
     else if(roleChoice == 2) {
-        FILE *file = fopen("nurses.txt", "a");
+        FILE *file = fopen("nurses.txt", "a+");
         Nurse n;
 
+        if(file == NULL) {
+            printf("File error.\n");
+            return;
+        }
+
         printf("Enter ID: ");
-        scanf("%s", n.id);
+        scanf("%19s", n.id);
 
         printf("Enter Name: ");
-        clearInputBuffer();
-        fgets(n.name, sizeof(n.name), stdin);
-        n.name[strcspn(n.name, "\n")] = '\0';
+        scanf("%49s", n.name);
 
         printf("Enter Department: ");
-        scanf("%s", n.department);
+        scanf("%49s", n.department);
 
         printf("Enter Password: ");
-        scanf("%s", n.password);
+        scanf("%19s", n.password);
 
-        fprintf(file, "%s|%s|%s|%s\n",
+        prepareAppend(file);
+        fprintf(file, "%s %s %s %s\n",
                 n.id, n.name, n.department, n.password);
 
         fclose(file);
@@ -87,27 +137,31 @@ void registerUser() {
     }
 
     else if(roleChoice == 3) {
-        FILE *file = fopen("patients.txt", "a");
+        FILE *file = fopen("patients.txt", "a+");
         Patient p;
 
+        if(file == NULL) {
+            printf("File error.\n");
+            return;
+        }
+
         printf("Enter ID: ");
-        scanf("%s", p.id);
+        scanf("%19s", p.id);
 
         printf("Enter Name: ");
-        clearInputBuffer();
-        fgets(p.name, sizeof(p.name), stdin);
-        p.name[strcspn(p.name, "\n")] = '\0';
+        scanf("%49s", p.name);
 
         printf("Enter Gender: ");
-        scanf("%s", p.gender);
+        scanf("%9s", p.gender);
 
         printf("Enter Age: ");
         scanf("%d", &p.age);
 
         printf("Enter Illness: ");
-        scanf("%s", p.illness);
+        scanf("%49s", p.illness);
 
-        fprintf(file, "%s|%s|%s|%d|%s\n",
+        prepareAppend(file);
+        fprintf(file, "%s %s %s %d %s\n",
                 p.id, p.name, p.gender, p.age, p.illness);
 
         fclose(file);
@@ -119,7 +173,7 @@ void registerUser() {
     }
 }
 
-void viewStaffReport() {
+void adminViewStaffReport(){
     FILE *file;
     Doctor d;
     Nurse n;
@@ -129,7 +183,7 @@ void viewStaffReport() {
     file = fopen("doctors.txt", "r");
     if(file) {
         printf("\n--- Doctors ---\n");
-        while(fscanf(file, "%[^|]|%[^|]|%[^|]|%[^\n]\n",
+        while(fscanf(file, "%19s %49s %49s %19s",
                      d.id, d.name, d.specialty, d.password) == 4) {
             printf("%s | %s | %s\n", d.id, d.name, d.specialty);
         }
@@ -139,7 +193,7 @@ void viewStaffReport() {
     file = fopen("nurses.txt", "r");
     if(file) {
         printf("\n--- Nurses ---\n");
-        while(fscanf(file, "%[^|]|%[^|]|%[^|]|%[^\n]\n",
+        while(fscanf(file, "%19s %49s %49s %19s",
                      n.id, n.name, n.department, n.password) == 4) {
             printf("%s | %s | %s\n", n.id, n.name, n.department);
         }
@@ -153,10 +207,10 @@ void searchStaff() {
     Nurse n;
 
     printf("Enter Staff ID: ");
-    scanf("%s", id);
+    scanf("%19s", id);
 
     FILE *file = fopen("doctors.txt", "r");
-    while(file && fscanf(file, "%[^|]|%[^|]|%[^|]|%[^\n]\n",
+    while(file && fscanf(file, "%19s %49s %49s %19s",
                          d.id, d.name, d.specialty, d.password) == 4) {
         if(strcmp(d.id, id) == 0) {
             printf("Doctor Found: %s | %s | %s\n", d.id, d.name, d.specialty);
@@ -167,7 +221,7 @@ void searchStaff() {
     if(file) fclose(file);
 
     file = fopen("nurses.txt", "r");
-    while(file && fscanf(file, "%[^|]|%[^|]|%[^|]|%[^\n]\n",
+    while(file && fscanf(file, "%19s %49s %49s %19s",
                          n.id, n.name, n.department, n.password) == 4) {
         if(strcmp(n.id, id) == 0) {
             printf("Nurse Found: %s | %s | %s\n", n.id, n.name, n.department);
@@ -191,7 +245,7 @@ void viewComplaints() {
         return;
     }
 
-    while(fscanf(file, "%[^|]|%[^\n]\n",
+    while(fscanf(file, "%19s %99s",
                  c.patientID, c.complaintText) == 2) {
         printf("%s | %s\n", c.patientID, c.complaintText);
     }
@@ -206,14 +260,14 @@ void searchComplaints() {
     int found = 0;
 
     printf("Enter Patient ID: ");
-    scanf("%s", id);
+    scanf("%19s", id);
 
     if(!file) {
         printf("No complaints found.\n");
         return;
     }
 
-    while(fscanf(file, "%[^|]|%[^\n]\n",
+    while(fscanf(file, "%19s %99s",
                  c.patientID, c.complaintText) == 2) {
         if(strcmp(c.patientID, id) == 0) {
             printf("Complaint: %s\n", c.complaintText);
@@ -245,7 +299,7 @@ void adminMenu() {
 
         switch(choice) {
             case 1: registerUser(); break;
-            case 2: viewStaffReport(); break;
+            case 2: adminViewStaffReport(); break;
             case 3: searchStaff(); break;
             case 4: viewComplaints(); break;
             case 5: searchComplaints(); break;
