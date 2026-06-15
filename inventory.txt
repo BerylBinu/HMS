@@ -1,0 +1,5 @@
+Paracetamol 50
+Gloves 3
+Masks 20
+Bandage 5
+Syringe 15

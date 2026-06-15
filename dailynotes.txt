@@ -1,0 +1,4 @@
+401|Temperature normal, blood pressure 120/80, patient resting well
+402|Patient has mild fever, medication reminder given at 8PM
+401|Patient is feeling better and symptoms are improving
+403|Blood pressure 130/85, patient complained of headache
