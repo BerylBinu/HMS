@@ -10,6 +10,26 @@ struct Doctor {
     char password[30];
 };
 
+static void prepareAppend(FILE *file) {
+    long size;
+    int lastChar;
+
+    fseek(file, 0, SEEK_END);
+    size = ftell(file);
+
+    if(size <= 0) {
+        return;
+    }
+
+    fseek(file, -1, SEEK_END);
+    lastChar = fgetc(file);
+    fseek(file, 0, SEEK_END);
+
+    if(lastChar != '\n') {
+        fprintf(file, "\n");
+    }
+}
+
 void doctorMenu(int doctorID);
 void addSchedule(int doctorID);
 void viewSchedule(int doctorID);
@@ -61,7 +81,7 @@ void doctorLogin() {
                      &doctorID,
                      name,
                      specialty,
-                     savedPassword) != EOF) {
+                     savedPassword) == 4) {
 
             if(inputID == doctorID &&
                strcmp(password, savedPassword) == 0) {
@@ -158,7 +178,7 @@ void addSchedule(int doctorID) {
     char day[20];
     char timing[30];
 
-    fp = fopen("schedules.txt", "a");
+    fp = fopen("schedules.txt", "a+");
 
     if(fp == NULL) {
         printf("File error.\n");
@@ -171,6 +191,7 @@ void addSchedule(int doctorID) {
     printf("Enter Timing (Example 9AM-1PM): ");
     scanf("%s", timing);
 
+    prepareAppend(fp);
     fprintf(fp, "%d %s %s\n",
             doctorID,
             day,
@@ -258,7 +279,7 @@ void addDiagnosis() {
     char diagnosis[100];
     char treatment[100];
 
-    fp = fopen("diagnosis.txt", "a");
+    fp = fopen("diagnosis.txt", "a+");
 
     if(fp == NULL) {
         printf("File error.\n");
@@ -274,6 +295,7 @@ void addDiagnosis() {
     printf("Treatment: ");
     scanf("%s", treatment);
 
+    prepareAppend(fp);
     fprintf(fp,
             "%d %s %s\n",
             patientID,
