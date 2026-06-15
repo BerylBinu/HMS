@@ -1,6 +1,6 @@
 #include <stdio.h>
-//#include "director.h"
-// #include "admin.h"
+#include "director.h"
+#include "admin.h"
 #include "doctor.h"
 // #include "nurse.h"
 // #include "patient.h"
@@ -23,11 +23,11 @@ int main() {
 
         switch(choice) {
             case 1:
-                //directorLogin();
+                directorLogin();
                 break;
 
             case 2:
-                // admin_login();
+                adminLogin();
                 break;
 
             case 3:
