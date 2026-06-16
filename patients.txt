@@ -1,0 +1,3 @@
+401 Alex Male 21 Fever
+402 Sarah Female 25 Flu
+403 John Male 30 Cough
