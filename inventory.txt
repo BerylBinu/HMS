@@ -1,5 +1,6 @@
+Panadol 200
 Paracetamol 50
-Gloves 3
-Masks 20
-Bandage 5
-Syringe 15
+Bandage 120
+Syringe 80
+Gloves 200
+Wheelchair 4
