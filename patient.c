@@ -9,38 +9,68 @@ void clearBuffer() {
     while (getchar() != '\n');
 }
 
+static void prepareAppend(FILE *file) {
+    long size;
+    int lastChar;
+
+    fseek(file, 0, SEEK_END);
+    size = ftell(file);
+
+    if (size <= 0) {
+        return;
+    }
+
+    fseek(file, -1, SEEK_END);
+    lastChar = fgetc(file);
+    fseek(file, 0, SEEK_END);
+
+    if (lastChar != '\n') {
+        fprintf(file, "\n");
+    }
+}
+
 /* ================= LOGIN ================= */
 /* File: patients.txt (admin created accounts assumed) */
 
-int patientLogin(char patientID[]) {
+void patientLogin() {
     FILE *fp = fopen(FILE_PATIENTS, "r");
 
     if (!fp) {
         printf("Error opening patients file!\n");
-        return 0;
+        return;
     }
 
-    char fileID[10], name[50], gender[10], illness[50];
+    char fileID[10], name[50], gender[10], illness[50], savedPassword[20];
     int age;
     char inputID[10];
+    char inputPassword[20];
+    char patientID[10];
+    int found = 0;
 
+    printf("\n===== PATIENT LOGIN =====\n");
     printf("Enter Patient ID: ");
     scanf("%s", inputID);
+    printf("Enter Password: ");
+    scanf("%19s", inputPassword);
 
-    while (fscanf(fp, "%s %s %s %d %s",
-                  fileID, name, gender, &age, illness) != EOF) {
-
-        if (strcmp(fileID, inputID) == 0) {
+    while (fscanf(fp, "%s %s %s %d %s %s",
+                  fileID, name, gender, &age, illness, savedPassword) == 6) {
+        if (strcmp(fileID, inputID) == 0 &&
+            strcmp(savedPassword, inputPassword) == 0) {
             strcpy(patientID, fileID);
-            fclose(fp);
-            printf("Login successful!\n");
-            return 1;
+            found = 1;
+            break;
         }
     }
 
     fclose(fp);
-    printf("Login failed!\n");
-    return 0;
+
+    if (found) {
+        printf("Login successful!\n");
+        patientMenu(patientID);
+    } else {
+        printf("Login failed!\n");
+    }
 }
 
 /* ================= MENU ================= */
@@ -73,8 +103,8 @@ void patientMenu(char patientID[]) {
             case 6: viewPayments(patientID); break;
             case 7: searchPayments(patientID); break;
             case 8: addComplaint(patientID); break;
-            case 9: viewComplaints(patientID); break;
-            case 10: searchComplaints(patientID); break;
+            case 9: patientViewComplaints(patientID); break;
+            case 10: patientSearchComplaints(patientID); break;
             case 0: printf("Logging out...\n"); break;
             default: printf("Invalid choice!\n");
         }
@@ -86,24 +116,62 @@ void patientMenu(char patientID[]) {
 /* Format: patientID doctorID date time */
 
 void bookAppointment(char patientID[]) {
-    FILE *fp = fopen(FILE_APPOINTMENTS, "a");
+    FILE *fp = fopen(FILE_APPOINTMENTS, "a+");
+    FILE *scheduleFile;
 
     if (fp == NULL) {
-    printf("Error opening appointments file!\n");
-    return;
-}
+        printf("Error opening appointments file!\n");
+        return;
+    }
 
     char doctorID[10], date[20], time[10];
+    char scheduleDoctorID[10], scheduleDay[20], scheduleTime[10];
+    int foundSchedule = 0;
+
+    scheduleFile = fopen("schedules.txt", "r");
+
+    if (scheduleFile == NULL) {
+        printf("No doctor schedules found. Appointment cannot be booked.\n");
+        fclose(fp);
+        return;
+    }
+
+    printf("\n--- AVAILABLE DOCTOR SCHEDULES ---\n");
+    while (fscanf(scheduleFile, "%9s %19s %9s",
+                  scheduleDoctorID, scheduleDay, scheduleTime) == 3) {
+        printf("Doctor: %s | Day: %s | Time: %s\n",
+               scheduleDoctorID, scheduleDay, scheduleTime);
+    }
+    rewind(scheduleFile);
 
     printf("Enter Doctor ID: ");
     scanf("%s", doctorID);
 
-    printf("Enter Date (DD-MM-YYYY): ");
+    printf("Enter Day from Schedule (Example Monday): ");
     scanf("%s", date);
 
     printf("Enter Time (e.g. 3PM): ");
     scanf("%s", time);
 
+    while (fscanf(scheduleFile, "%9s %19s %9s",
+                  scheduleDoctorID, scheduleDay, scheduleTime) == 3) {
+        if (strcmp(scheduleDoctorID, doctorID) == 0 &&
+            strcmp(scheduleDay, date) == 0 &&
+            strcmp(scheduleTime, time) == 0) {
+            foundSchedule = 1;
+            break;
+        }
+    }
+
+    fclose(scheduleFile);
+
+    if (!foundSchedule) {
+        printf("Selected doctor schedule was not found. Appointment not booked.\n");
+        fclose(fp);
+        return;
+    }
+
+    prepareAppend(fp);
     fprintf(fp, "%s %s %s %s\n",
             patientID, doctorID, date, time);
 
@@ -127,7 +195,7 @@ void viewAppointments(char patientID[]) {
     printf("\n--- YOUR APPOINTMENTS ---\n");
 
     while (fscanf(fp, "%s %s %s %s",
-                  app.patientID, app.doctorID, app.date, app.time) != EOF) {
+                  app.patientID, app.doctorID, app.date, app.time) == 4) {
 
         if (strcmp(app.patientID, patientID) == 0) {
             printf("Doctor: %s | Date: %s | Time: %s\n",
@@ -152,10 +220,15 @@ void viewPayments(char patientID[]) {
     char pID[10], status[10];
     float amount;
 
+    if (fp == NULL) {
+        printf("No payments found!\n");
+        return;
+    }
+
     printf("\n--- YOUR PAYMENTS ---\n");
 
     while (fscanf(fp, "%s %f %s",
-                  pID, &amount, status) != EOF) {
+                  pID, &amount, status) == 3) {
 
         if (strcmp(pID, patientID) == 0) {
             printf("Amount: %.2f | Status: %s\n",
@@ -170,16 +243,19 @@ void viewPayments(char patientID[]) {
 /* Format: patientID complaint */
 
 void addComplaint(char patientID[]) {
-    FILE *fp = fopen(FILE_COMPLAINTS, "a");
+    FILE *fp = fopen(FILE_COMPLAINTS, "a+");
 
     char complaint[200];
 
+    if (fp == NULL) {
+        printf("Error opening complaints file!\n");
+        return;
+    }
+
     printf("Enter Complaint: ");
-    clearBuffer();
-    fgets(complaint, sizeof(complaint), stdin);
+    scanf("%199s", complaint);
 
-    complaint[strcspn(complaint, "\n")] = 0;
-
+    prepareAppend(fp);
     fprintf(fp, "%s %s\n", patientID, complaint);
 
     fclose(fp);
@@ -187,16 +263,21 @@ void addComplaint(char patientID[]) {
     printf("Complaint submitted!\n");
 }
 
-void viewComplaints(char patientID[]) {
+void patientViewComplaints(char patientID[]) {
     FILE *fp = fopen(FILE_COMPLAINTS, "r");
 
     char pID[10];
     char complaint[200];
 
+    if (fp == NULL) {
+        printf("No complaints found!\n");
+        return;
+    }
+
     printf("\n--- YOUR COMPLAINTS ---\n");
 
-    while (fscanf(fp, "%s %[^\n]",
-                  pID, complaint) != EOF) {
+    while (fscanf(fp, "%s %199s",
+                  pID, complaint) == 2) {
 
         if (strcmp(pID, patientID) == 0) {
             printf("%s\n", complaint);
@@ -229,7 +310,7 @@ void rescheduleAppointment(char patientID[]) {
     printf("Enter appointment time to reschedule: ");
     scanf("%s", oldTime);
 
-    while (fscanf(fp, "%s %s %s %s", pID, dID, date, time) != EOF) {
+    while (fscanf(fp, "%s %s %s %s", pID, dID, date, time) == 4) {
         if (strcmp(pID, patientID) == 0 &&
             strcmp(date, oldDate) == 0 &&
             strcmp(time, oldTime) == 0) {
@@ -250,8 +331,10 @@ void rescheduleAppointment(char patientID[]) {
     fclose(fp);
     fclose(temp);
 
-    remove(FILE_APPOINTMENTS);
-    rename("temp.txt", FILE_APPOINTMENTS);
+    if (remove(FILE_APPOINTMENTS) != 0 || rename("temp.txt", FILE_APPOINTMENTS) != 0) {
+        printf("Error updating appointments file!\n");
+        return;
+    }
 
     if (found) {
         printf("Appointment rescheduled successfully!\n");
@@ -281,7 +364,7 @@ void cancelAppointment(char patientID[]) {
     printf("Enter appointment time to cancel: ");
     scanf("%s", cancelTime);
 
-    while (fscanf(fp, "%s %s %s %s", pID, dID, date, time) != EOF) {
+    while (fscanf(fp, "%s %s %s %s", pID, dID, date, time) == 4) {
         if (strcmp(pID, patientID) == 0 &&
             strcmp(date, cancelDate) == 0 &&
             strcmp(time, cancelTime) == 0) {
@@ -295,8 +378,10 @@ void cancelAppointment(char patientID[]) {
     fclose(fp);
     fclose(temp);
 
-    remove(FILE_APPOINTMENTS);
-    rename("temp.txt", FILE_APPOINTMENTS);
+    if (remove(FILE_APPOINTMENTS) != 0 || rename("temp.txt", FILE_APPOINTMENTS) != 0) {
+        printf("Error updating appointments file!\n");
+        return;
+    }
 
     if (found) {
         printf("Appointment cancelled successfully!\n");
@@ -308,7 +393,7 @@ void cancelAppointment(char patientID[]) {
 /* ================= ADD PAYMENT ================= */
 
 void addPayment(char patientID[]) {
-    FILE *fp = fopen(FILE_PAYMENTS, "a");
+    FILE *fp = fopen(FILE_PAYMENTS, "a+");
 
     float amount;
 
@@ -320,6 +405,7 @@ void addPayment(char patientID[]) {
     printf("Enter payment amount: ");
     scanf("%f", &amount);
 
+    prepareAppend(fp);
     fprintf(fp, "%s %.2f PAID\n", patientID, amount);
 
     fclose(fp);
@@ -345,7 +431,7 @@ void searchPayments(char patientID[]) {
     printf("Enter amount to search: ");
     scanf("%f", &searchAmount);
 
-    while (fscanf(fp, "%s %f %s", pID, &amount, status) != EOF) {
+    while (fscanf(fp, "%s %f %s", pID, &amount, status) == 3) {
         if (strcmp(pID, patientID) == 0 && amount == searchAmount) {
             printf("Amount: %.2f | Status: %s\n", amount, status);
             found = 1;
@@ -359,7 +445,7 @@ void searchPayments(char patientID[]) {
     }
 }
 
-void searchComplaints(char patientID[]) {
+void patientSearchComplaints(char patientID[]) {
     FILE *fp = fopen(FILE_COMPLAINTS, "r");
 
     char pID[10];
@@ -375,7 +461,7 @@ void searchComplaints(char patientID[]) {
     printf("Enter complaint keyword to search: ");
     scanf("%s", keyword);
 
-    while (fscanf(fp, "%s %[^\n]", pID, complaint) != EOF) {
+    while (fscanf(fp, "%s %199s", pID, complaint) == 2) {
         if (strcmp(pID, patientID) == 0 && strstr(complaint, keyword) != NULL) {
             printf("%s\n", complaint);
             found = 1;
@@ -388,5 +474,4 @@ void searchComplaints(char patientID[]) {
         printf("Complaint not found!\n");
     }
 }
-
 
