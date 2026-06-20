@@ -1,3 +1,5 @@
-401 Alex Male 21 Fever
-402 Sarah Female 25 Flu
-403 John Male 30 Cough
+P001 Ethan Male 32 Flu patient123
+P002 Sofia Female 27 Migraine sofia123
+P003 Adam Male 45 ChestPain adam123
+P004 Nina Female 9 Fever nina123
+P005 Raj Male 61 KneePain raj123
