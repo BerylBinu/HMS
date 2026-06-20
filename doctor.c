@@ -4,7 +4,7 @@
 #include "doctor.h"
 
 struct Doctor {
-    int doctorID;
+    char doctorID[20];
     char name[50];
     char specialty[50];
     char password[30];
@@ -30,10 +30,10 @@ static void prepareAppend(FILE *file) {
     }
 }
 
-void doctorMenu(int doctorID);
-void addSchedule(int doctorID);
-void viewSchedule(int doctorID);
-void searchSchedule(int doctorID);
+void doctorMenu(char doctorID[]);
+void addSchedule(char doctorID[]);
+void viewSchedule(char doctorID[]);
+void searchSchedule(char doctorID[]);
 void addDiagnosis();
 void viewDiagnosis();
 void searchDiagnosis();
@@ -42,8 +42,8 @@ void doctorLogin() {
 
     FILE *file;
 
-    int inputID;
-    int doctorID;
+    char inputID[20];
+    char doctorID[20];
 
     char password[50];
     char savedPassword[50];
@@ -69,7 +69,7 @@ void doctorLogin() {
     while(attempts < MAX_ATTEMPTS && !found) {
 
         printf("Enter Doctor ID: ");
-        scanf("%d", &inputID);
+        scanf("%19s", inputID);
 
         printf("Enter Password: ");
         scanf("%s", password);
@@ -77,13 +77,13 @@ void doctorLogin() {
         rewind(file);
 
         while(fscanf(file,
-                     "%d %s %s %s",
-                     &doctorID,
+                     "%19s %49s %49s %49s",
+                     doctorID,
                      name,
                      specialty,
                      savedPassword) == 4) {
 
-            if(inputID == doctorID &&
+            if(strcmp(inputID, doctorID) == 0 &&
                strcmp(password, savedPassword) == 0) {
 
                 found = 1;
@@ -121,7 +121,7 @@ void doctorLogin() {
     }
 }
 
-void doctorMenu(int doctorID) {
+void doctorMenu(char doctorID[]) {
     int choice;
 
     do {
@@ -173,7 +173,7 @@ void doctorMenu(int doctorID) {
     } while(choice != 0);
 }
 
-void addSchedule(int doctorID) {
+void addSchedule(char doctorID[]) {
     FILE *fp;
     char day[20];
     char timing[30];
@@ -192,7 +192,7 @@ void addSchedule(int doctorID) {
     scanf("%s", timing);
 
     prepareAppend(fp);
-    fprintf(fp, "%d %s %s\n",
+    fprintf(fp, "%s %s %s\n",
             doctorID,
             day,
             timing);
@@ -202,9 +202,9 @@ void addSchedule(int doctorID) {
     printf("Schedule added successfully.\n");
 }
 
-void viewSchedule(int doctorID) {
+void viewSchedule(char doctorID[]) {
     FILE *fp;
-    int id;
+    char id[20];
     char day[20];
     char timing[30];
 
@@ -217,12 +217,12 @@ void viewSchedule(int doctorID) {
 
     printf("\n===== MY SCHEDULES =====\n");
 
-    while(fscanf(fp, "%d %s %s",
-                 &id,
+    while(fscanf(fp, "%19s %19s %29s",
+                 id,
                  day,
                  timing) != EOF) {
 
-        if(id == doctorID) {
+        if(strcmp(id, doctorID) == 0) {
             printf("Day: %-10s Time: %s\n",
                    day,
                    timing);
@@ -232,9 +232,9 @@ void viewSchedule(int doctorID) {
     fclose(fp);
 }
 
-void searchSchedule(int doctorID) {
+void searchSchedule(char doctorID[]) {
     FILE *fp;
-    int id;
+    char id[20];
     char day[20];
     char timing[30];
     char searchDay[20];
@@ -250,12 +250,12 @@ void searchSchedule(int doctorID) {
         return;
     }
 
-    while(fscanf(fp, "%d %s %s",
-                 &id,
+    while(fscanf(fp, "%19s %19s %29s",
+                 id,
                  day,
                  timing) != EOF) {
 
-        if(id == doctorID &&
+        if(strcmp(id, doctorID) == 0 &&
            strcmp(day, searchDay) == 0) {
 
             printf("Found: %s %s\n",
@@ -275,7 +275,7 @@ void searchSchedule(int doctorID) {
 
 void addDiagnosis() {
     FILE *fp;
-    int patientID;
+    char patientID[20];
     char diagnosis[100];
     char treatment[100];
 
@@ -287,7 +287,7 @@ void addDiagnosis() {
     }
 
     printf("Patient ID: ");
-    scanf("%d", &patientID);
+    scanf("%19s", patientID);
 
     printf("Diagnosis: ");
     scanf("%s", diagnosis);
@@ -297,7 +297,7 @@ void addDiagnosis() {
 
     prepareAppend(fp);
     fprintf(fp,
-            "%d %s %s\n",
+            "%s %s %s\n",
             patientID,
             diagnosis,
             treatment);
@@ -309,7 +309,7 @@ void addDiagnosis() {
 
 void viewDiagnosis() {
     FILE *fp;
-    int patientID;
+    char patientID[20];
     char diagnosis[100];
     char treatment[100];
 
@@ -323,12 +323,12 @@ void viewDiagnosis() {
     printf("\n===== DIAGNOSIS REPORT =====\n");
 
     while(fscanf(fp,
-                 "%d %s %s",
-                 &patientID,
+                 "%19s %99s %99s",
+                 patientID,
                  diagnosis,
                  treatment) != EOF) {
 
-        printf("Patient ID: %d\n",
+        printf("Patient ID: %s\n",
                patientID);
 
         printf("Diagnosis : %s\n",
@@ -343,14 +343,14 @@ void viewDiagnosis() {
 
 void searchDiagnosis() {
     FILE *fp;
-    int patientID;
-    int searchID;
+    char patientID[20];
+    char keyword[100];
     char diagnosis[100];
     char treatment[100];
     int found = 0;
 
-    printf("Enter Patient ID: ");
-    scanf("%d", &searchID);
+    printf("Enter Patient ID or Diagnosis to Search: ");
+    scanf("%99s", keyword);
 
     fp = fopen("diagnosis.txt", "r");
 
@@ -360,14 +360,15 @@ void searchDiagnosis() {
     }
 
     while(fscanf(fp,
-                 "%d %s %s",
-                 &patientID,
+                 "%19s %99s %99s",
+                 patientID,
                  diagnosis,
                  treatment) != EOF) {
 
-        if(patientID == searchID) {
+        if(strcmp(patientID, keyword) == 0 ||
+           strcmp(diagnosis, keyword) == 0) {
 
-            printf("\nPatient ID: %d\n",
+            printf("\nPatient ID: %s\n",
                    patientID);
 
             printf("Diagnosis : %s\n",
