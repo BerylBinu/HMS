@@ -5,7 +5,7 @@
 
 typedef struct
 {
-    int nurseID;
+    char nurseID[20];
     char name[50];
     char department[50];
     char password[30];
@@ -14,7 +14,7 @@ typedef struct
 
 typedef struct
 {
-    int doctorID;
+    char doctorID[20];
     char day[20];
     char timing[30];
 
@@ -29,10 +29,30 @@ typedef struct
 
 typedef struct
 {
-    long patientID;
+    char patientID[20];
     char note[200];
 
 } DailyNote;
+
+static void prepareAppend(FILE *file) {
+    long size;
+    int lastChar;
+
+    fseek(file, 0, SEEK_END);
+    size = ftell(file);
+
+    if (size <= 0) {
+        return;
+    }
+
+    fseek(file, -1, SEEK_END);
+    lastChar = fgetc(file);
+    fseek(file, 0, SEEK_END);
+
+    if (lastChar != '\n') {
+        fprintf(file, "\n");
+    }
+}
 
 
 /* ================= LOGIN ================= */
@@ -42,14 +62,14 @@ void nurseLogin()
     FILE *fp;
     Nurse nurse;
 
-    int id;
+    char id[20];
     char password[30];
     int found = 0;
 
     printf("\n===== NURSE LOGIN =====\n");
 
     printf("Enter Nurse ID: ");
-    scanf("%d", &id);
+    scanf("%19s", id);
 
     printf("Enter Password: ");
     scanf("%s", password);
@@ -62,13 +82,13 @@ void nurseLogin()
         return;
     }
 
-    while (fscanf(fp, "%d %s %s %s",
-                  &nurse.nurseID,
+    while (fscanf(fp, "%19s %49s %49s %29s",
+                  nurse.nurseID,
                   nurse.name,
                   nurse.department,
-                  nurse.password) != EOF)
+                  nurse.password) == 4)
     {
-        if (nurse.nurseID == id &&
+        if (strcmp(nurse.nurseID, id) == 0 &&
             strcmp(nurse.password, password) == 0)
         {
             found = 1;
@@ -171,13 +191,13 @@ void viewDoctorSchedule()
 
     printf("\n===== DOCTOR SCHEDULES =====\n");
 
-    while (fscanf(fp, "%d %s %s",
-                  &schedule.doctorID,
+    while (fscanf(fp, "%19s %19s %29s",
+                  schedule.doctorID,
                   schedule.day,
                   schedule.timing) == 3)
     {
         printf("-----------------------------\n");
-        printf("Doctor ID : %d\n", schedule.doctorID);
+        printf("Doctor ID : %s\n", schedule.doctorID);
         printf("Day       : %s\n", schedule.day);
         printf("Time      : %s\n", schedule.timing);
 
@@ -202,7 +222,7 @@ void addInventory()
     FILE *fp;
     Inventory item;
 
-    fp = fopen("inventory.txt", "a");
+    fp = fopen("inventory.txt", "a+");
 
     if (fp == NULL)
     {
@@ -227,6 +247,7 @@ void addInventory()
 
     } while (item.quantity < 0);
 
+    prepareAppend(fp);
     fprintf(fp, "%s %d\n", item.item, item.quantity);
 
     fclose(fp);
@@ -353,7 +374,7 @@ void addDailyNote()
     FILE *fp;
     DailyNote note;
 
-    fp = fopen("dailynotes.txt", "a");
+    fp = fopen("dailynotes.txt", "a+");
 
     if (fp == NULL)
     {
@@ -366,23 +387,19 @@ void addDailyNote()
     do
     {
         printf("Enter Patient ID: ");
-        scanf("%ld", &note.patientID);
+        scanf("%19s", note.patientID);
 
-        if (note.patientID <= 0)
+        if (strlen(note.patientID) == 0)
         {
-            printf("Patient ID must be greater than 0.\n");
+            printf("Patient ID cannot be empty.\n");
         }
 
-    } while (note.patientID <= 0);
-
-    getchar();
+    } while (strlen(note.patientID) == 0);
 
     do
     {
         printf("Enter Note: ");
-        fgets(note.note, sizeof(note.note), stdin);
-
-        note.note[strcspn(note.note, "\n")] = '\0';
+        scanf("%199s", note.note);
 
         if (strlen(note.note) == 0)
         {
@@ -391,12 +408,13 @@ void addDailyNote()
 
     } while (strlen(note.note) == 0);
 
-    fprintf(fp, "%ld|%s\n", note.patientID, note.note);
+    prepareAppend(fp);
+    fprintf(fp, "%s %s\n", note.patientID, note.note);
 
     fclose(fp);
 
     printf("\nDaily Note Added Successfully.\n");
-    printf("Patient ID : %ld\n", note.patientID);
+    printf("Patient ID : %s\n", note.patientID);
     printf("Note       : %s\n", note.note);
 }
 
@@ -415,12 +433,12 @@ void viewDailyNotes()
 
     printf("\n===== DAILY NOTES =====\n");
 
-    while (fscanf(fp, "%ld|%[^\n]\n",
-                  &note.patientID,
+    while (fscanf(fp, "%19s %199s",
+                  note.patientID,
                   note.note) == 2)
     {
         printf("-----------------------------\n");
-        printf("Patient ID : %ld\n", note.patientID);
+        printf("Patient ID : %s\n", note.patientID);
         printf("Note       : %s\n", note.note);
     }
 
@@ -435,7 +453,7 @@ void searchDailyNotes()
     FILE *fp;
     DailyNote note;
 
-    long searchID;
+    char searchID[20];
     int found = 0;
 
     printf("\n===== SEARCH DAILY NOTES =====\n");
@@ -443,14 +461,14 @@ void searchDailyNotes()
     do
     {
         printf("Enter Patient ID: ");
-        scanf("%ld", &searchID);
+        scanf("%19s", searchID);
 
-        if (searchID <= 0)
+        if (strlen(searchID) == 0)
         {
-            printf("Patient ID must be greater than 0.\n");
+            printf("Patient ID cannot be empty.\n");
         }
 
-    } while (searchID <= 0);
+    } while (strlen(searchID) == 0);
 
     fp = fopen("dailynotes.txt", "r");
 
@@ -462,14 +480,14 @@ void searchDailyNotes()
 
     printf("\n===== SEARCH RESULTS =====\n");
 
-    while (fscanf(fp, "%ld|%[^\n]\n",
-                  &note.patientID,
+    while (fscanf(fp, "%19s %199s",
+                  note.patientID,
                   note.note) == 2)
     {
-        if (note.patientID == searchID)
+        if (strcmp(note.patientID, searchID) == 0)
         {
             printf("-----------------------------\n");
-            printf("Patient ID : %ld\n", note.patientID);
+            printf("Patient ID : %s\n", note.patientID);
             printf("Note       : %s\n", note.note);
 
             found = 1;
@@ -478,7 +496,7 @@ void searchDailyNotes()
 
     if (found == 0)
     {
-        printf("No notes found for Patient ID %ld.\n", searchID);
+        printf("No notes found for Patient ID %s.\n", searchID);
     }
 
     printf("-----------------------------\n");
