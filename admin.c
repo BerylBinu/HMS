@@ -160,9 +160,12 @@ void registerUser() {
         printf("Enter Illness: ");
         scanf("%49s", p.illness);
 
+        printf("Enter Password: ");
+        scanf("%19s", p.password);
+
         prepareAppend(file);
-        fprintf(file, "%s %s %s %d %s\n",
-                p.id, p.name, p.gender, p.age, p.illness);
+        fprintf(file, "%s %s %s %d %s %s\n",
+                p.id, p.name, p.gender, p.age, p.illness, p.password);
 
         fclose(file);
         printf("Patient added successfully!\n");
@@ -202,17 +205,18 @@ void adminViewStaffReport(){
 }
 
 void searchStaff() {
-    char id[20];
+    char keyword[50];
     Doctor d;
     Nurse n;
 
-    printf("Enter Staff ID: ");
-    scanf("%19s", id);
+    printf("Enter Staff ID or Name: ");
+    scanf("%49s", keyword);
 
     FILE *file = fopen("doctors.txt", "r");
     while(file && fscanf(file, "%19s %49s %49s %19s",
                          d.id, d.name, d.specialty, d.password) == 4) {
-        if(strcmp(d.id, id) == 0) {
+        if(strcmp(d.id, keyword) == 0 ||
+           strcmp(d.name, keyword) == 0) {
             printf("Doctor Found: %s | %s | %s\n", d.id, d.name, d.specialty);
             fclose(file);
             return;
@@ -223,7 +227,8 @@ void searchStaff() {
     file = fopen("nurses.txt", "r");
     while(file && fscanf(file, "%19s %49s %49s %19s",
                          n.id, n.name, n.department, n.password) == 4) {
-        if(strcmp(n.id, id) == 0) {
+        if(strcmp(n.id, keyword) == 0 ||
+           strcmp(n.name, keyword) == 0) {
             printf("Nurse Found: %s | %s | %s\n", n.id, n.name, n.department);
             fclose(file);
             return;
