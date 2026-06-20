@@ -4,7 +4,7 @@
 
 struct Admin {
 
-    int id;
+    char id[20];
     char name[50];
     char password[50];
 
@@ -105,7 +105,7 @@ void addAdministrator() {
     printf("\n===== ADD ADMINISTRATOR =====\n");
 
     printf("Enter Administrator ID: ");
-    scanf("%d", &admin.id);
+    scanf("%19s", admin.id);
 
     while(getchar() != '\n');
     
@@ -117,7 +117,7 @@ void addAdministrator() {
 
     prepareAppend(file);
     fprintf(file,
-            "%d %s %s\n",
+            "%s %s %s\n",
             admin.id,
             admin.name,
             admin.password);
@@ -134,7 +134,7 @@ void searchAdministrator() {
 
     struct Admin admin;
 
-    int searchID;
+    char keyword[50];
 
     int found = 0;
 
@@ -149,21 +149,22 @@ void searchAdministrator() {
 
     printf("\n===== SEARCH ADMINISTRATOR =====\n");
 
-    printf("Enter Administrator ID to Search: ");
+    printf("Enter Administrator ID or Name to Search: ");
 
-    scanf("%d", &searchID);
+    scanf("%49s", keyword);
 
     while(fscanf(file,
-           "%d %s %s",
-           &admin.id,
+           "%19s %49s %49s",
+           admin.id,
            admin.name,
            admin.password) == 3) {
 
-        if(admin.id == searchID) {
+        if(strcmp(admin.id, keyword) == 0 ||
+           strcmp(admin.name, keyword) == 0) {
 
             printf("\nAdministrator Found!\n");
 
-            printf("ID: %d\n", admin.id);
+            printf("ID: %s\n", admin.id);
 
             printf("Name: %s\n", admin.name);
 
@@ -200,12 +201,12 @@ void viewAdministrators() {
     printf("\n===== ADMINISTRATOR LIST =====\n");
 
     while(fscanf(file,
-           "%d %s %s",
-           &admin.id,
+           "%19s %49s %49s",
+           admin.id,
            admin.name,
            admin.password) == 3) {
 
-        printf("\nID: %d\n", admin.id);
+        printf("\nID: %s\n", admin.id);
 
         printf("Name: %s\n", admin.name);
 
