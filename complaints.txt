@@ -1,1 +1,6 @@
-401 Slow service at reception
+P001 Dirty_Room
+P001 Unhygenic
+P002 Long_Waiting_Time
+P003 Billing_Delay
+P004 Noisy_Ward
+P005 Slow_Service
