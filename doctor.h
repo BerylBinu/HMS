@@ -5,12 +5,12 @@
 void doctorLogin();
 
 // Menu
-void doctorMenu(int doctorID);
+void doctorMenu(char doctorID[]);
 
 // Scheduler
-void addSchedule(int doctorID);
-void viewSchedule(int doctorID);
-void searchSchedule(int doctorID);
+void addSchedule(char doctorID[]);
+void viewSchedule(char doctorID[]);
+void searchSchedule(char doctorID[]);
 
 // Diagnosis
 void addDiagnosis();
