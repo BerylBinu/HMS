@@ -1,2 +1,5 @@
-201 Smith Cardiology pass123
-202 John Neurology doctor123
+DR001 Smith Cardiology Smith123
+DR002 John Neurology John123
+DR003 Elliot_Prince Dentist elliot123
+DR004 Aisha Pediatrics aisha123
+DR005 Kumar Orthopedics kumar123
