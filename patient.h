@@ -17,7 +17,8 @@ typedef struct {
     char gender[10];
     int age;
     char illness[50];
-} Patient;
+    char password[20];
+} PatientRecord;
 
 typedef struct {
     char patientID[10];
@@ -30,15 +31,15 @@ typedef struct {
     char patientID[10];
     float amount;
     char status[10];
-} Payment;
+} PaymentRecord;
 
 typedef struct {
     char patientID[10];
     char complaint[200];
-} Complaint;
+} PatientComplaint;
 
 /* ===== LOGIN AND MENU ===== */
-int patientLogin(char patientID[]);
+void patientLogin();
 void patientMenu(char patientID[]);
 
 /* ===== APPOINTMENTS ===== */
@@ -54,8 +55,8 @@ void searchPayments(char patientID[]);
 
 /* ===== COMPLAINTS ===== */
 void addComplaint(char patientID[]);
-void viewComplaints(char patientID[]);
-void searchComplaints(char patientID[]);
+void patientViewComplaints(char patientID[]);
+void patientSearchComplaints(char patientID[]);
 
 /* ===== UTIL ===== */
 void clearBuffer();
