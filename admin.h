@@ -28,6 +28,7 @@ typedef struct {
     char gender[10];
     int age;
     char illness[50];
+    char password[20];
 } Patient;
 
 typedef struct {
