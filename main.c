@@ -3,7 +3,7 @@
 #include "admin.h"
 #include "doctor.h"
 #include "nurse.h"
-// #include "patient.h"
+#include "patient.h"
 
 
 
@@ -39,7 +39,7 @@ int main() {
                 break;
 
             case 5:
-                // patient_login();
+                patientLogin();
                 break;
 
             case 0:
