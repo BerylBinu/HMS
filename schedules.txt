@@ -1,3 +1,5 @@
-201 9 3AM-5AM
-201 9 4AM-10AM
-201 thursday 8am
+DR002 Monday 9AM-1PM
+DR001 Tuesday 2PM-5PM
+DR003 Wednesday 10AM-12PM
+DR004 Thursday 1PM-4PM
+DR005 Friday 8AM-11AM
